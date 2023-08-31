@@ -1,0 +1,8 @@
+636c636,640
+<                 data_len = len(data[next(iter(data))])
+---
+>                 # data_len = len(data[next(iter(data))])
+>                 time_lengths = tree.map_structure(lambda x: len(x), data[next(iter(data))])
+>                 flattened_lengths = tree.flatten(time_lengths)
+>                 assert all(t == flattened_lengths[0] for t in flattened_lengths)
+>                 data_len = flattened_lengths[0]
