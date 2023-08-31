@@ -1,4 +1,4 @@
-# MeltingPotContest
+# Melting Pot Contest @ Neurips 2023
 Official Repository for Melting Pot Contest Experiments
 
 >**NOTE:** This repository provides a basic startup code for training RLLIB agents on Melting Pot.
