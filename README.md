@@ -101,6 +101,9 @@ OPTIONS:
 
 ```
 
+> For torch backend, you may need to prepend the above command with CUDA_VISIBLE_DEVICE=<DEVICE IDS>
+if your algorithm does not seem to find GPU when enabled.
+
 ## Run Evaluation
 
 ```
