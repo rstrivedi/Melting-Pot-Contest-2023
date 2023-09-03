@@ -62,7 +62,7 @@ cd <repo-home>
 conda create -n mpc_main python=3.10
 conda activate mpc_main
 SYSTEM_VERSION_COMPAT=0 pip install dmlab2d
-pip intall -e .
+pip install -e .
 sh run_patches.sh
 ```
 
