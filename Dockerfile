@@ -2,7 +2,7 @@ ARG PYTHON_VERSION=3.10
 ARG CUDA_VERSION=11.6.2
 ARG UBUNTU_VERSION=20.04
 
-FROM nvidia/cuda:${CUDA_VERSION}}-devel-ubuntu${UBUNTU_VERSION}}
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION}
 
 # Install dependencies
 RUN apt-get update && \
