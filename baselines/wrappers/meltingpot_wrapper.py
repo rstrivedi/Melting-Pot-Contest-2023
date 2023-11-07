@@ -2,6 +2,7 @@ import dmlab2d
 from gymnasium import spaces
 import numpy as np
 from ray.rllib.env import multi_agent_env
+import json
 
 from baselines.train import utils
 
@@ -17,6 +18,8 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
     Args:
       env: dmlab2d environment to wrap. Will be closed when this wrapper closes.
     """
+    self.debug_out = []
+    self.rgb_map = {}
     self._env = env
     self._num_players = len(self._env.observation_spec())
     self._ordered_agent_ids = [
@@ -44,6 +47,11 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
   def step(self, action_dict):
     """See base class."""
     actions = [action_dict[agent_id] for agent_id in self._ordered_agent_ids]
+
+    # print("\n\n\n\n\n\n\n\n\n")
+    # print("======== DEBUG ========")
+    # print("actions:", actions)
+
     timestep = self._env.step(actions)
     rewards = {
         agent_id: timestep.reward[index]
@@ -53,11 +61,44 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
     info = {}
 
     observations = utils.timestep_to_observations(timestep)
+
+    for val in observations.values():
+      rgb = json.dumps(val['RGB'].tolist())
+      if rgb not in self.rgb_map:
+        self.rgb_map[rgb] = len(self.rgb_map)
+
+    debug_rewards = {
+      agent_id: reward.tolist()
+      for agent_id, reward in rewards.items()
+    }
+    debug_observations = {
+      agent_id: {
+        'COLLECTIVE_REWARD': val['COLLECTIVE_REWARD'],
+        'READY_TO_SHOOT': val['READY_TO_SHOOT'].tolist(),
+        'RGB': self.rgb_map[json.dumps(val['RGB'].tolist())]
+      }
+      for agent_id, val in observations.items()
+    }
+    debug = {
+      "actions": list(map(lambda x: str(x), actions)),
+      "rewards": debug_rewards,
+      "observations": debug_observations
+    }
+    self.debug_out.append(debug)
+
     return observations, rewards, done, done, info
 
   def close(self):
     """See base class."""
+    print("debug length:", len(self.debug_out))
+    if len(self.debug_out) > 0:
+      with open("./my_debug_out.json", "w") as outfile:
+          json_object = json.dumps(self.debug_out, indent=5)
+          outfile.write(json_object)
 
+    with open("./rgb_mapping.json", "w") as outfile:
+        json_object = json.dumps(self.rgb_map, indent=5)
+        outfile.write(json_object)
     self._env.close()
 
   def get_dmlab2d_env(self):
