@@ -106,22 +106,7 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
           return True
       return False
 
-    def distanceToClosestApple(rgb):
-      # apple_coords = []
-      # for row in range(len(rgb)):
-      #   for col in range(len(rgb[0])):
-      #     if rgb[row][col].tolist() == APPLE:
-      #       apple_coords.append((row, col))
-
-      # nearest_dist = sys.maxsize
-      # for row, col in apple_coords:
-      #   print("\n\n\n\n\n\n\n")
-      #   dist = math.sqrt((col - 5) ** 2 + (row - 9) ** 2)
-      #   print(row, col, dist)
-      #   print("\n\n\n\n\n\n\n")
-      #   nearest_dist = min(dist, nearest_dist)
-      # return -1 if nearest_dist == sys.maxsize else nearest_dist
-      
+    def distanceToNearestApple(rgb):
       directions = ((0, 1), (1, 0), (0, -1), (-1, 0))
       queue = deque()
       queue.append((9, 5))
@@ -134,53 +119,51 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
           # print(row, col)
           if rgb[row][col].tolist() == APPLE:
             dist_to_nearest_apple = abs(col - 5) + abs(row - 9)
-            print("\n\n\n\n\n\n\n\n\n\n")
-            print(row, col, dist_to_nearest_apple, visited)
-            print("\n\n\n\n\n\n\n\n\n\n")
-            dist = "{:.6f}".format(dist_to_nearest_apple)
-            mapp = rgb
-            for v in visited:
-              mapp[v[0]][v[1]][0] += 20
-              mapp[v[0]][v[1]][1] += 20
-              mapp[v[0]][v[1]][2] += 20
-            plt.imshow(mapp)
-            plt.savefig(f"./img_out/{self.img_count}_{row}_{col}_{dist}.png")
-            self.img_count += 1 
-            return visited, row, col, dist_to_nearest_apple
+
+            ## DEBUG
+            # dist = "{:.6f}".format(dist_to_nearest_apple)
+            # mapp = rgb
+            # for v in visited:
+            #   mapp[v[0]][v[1]][0] += 20
+            #   mapp[v[0]][v[1]][1] += 20
+            #   mapp[v[0]][v[1]][2] += 20
+            # plt.imshow(mapp)
+            # plt.savefig(f"./img_out/{self.img_count}_{row}_{col}_{dist}.png")
+            # self.img_count += 1 
+
+            return dist_to_nearest_apple
           
           for d_row, d_col in directions:
             new_row = row + d_row
             new_col = col + d_col
             if new_row >= 0 and new_row < 11 and new_col >= 0 and new_col < 11:
               queue.append((row + d_row, col + d_col))
-      return None, 0, 0, -1
+      return -1
           
     def rewardFunc(action, observation):
       rgb = observation["RGB"]
+      dist_to_nearest_apple = distanceToNearestApple(rgb)
       should_clean = isDirtyWaterInRange(rgb)
+      if dist_to_nearest_apple != -1:
+        return 1 / dist_to_nearest_apple
+
       if should_clean:
         if action == FIRE_CLEAN:
           return 1
         else:
           return -1
       else:
-        return -0.25
+        return -0.1
 
     actions = [action_dict[agent_id] for agent_id in self._ordered_agent_ids]
     timestep = self._env.step(actions)
     observations = utils.timestep_to_observations(timestep)
 
     p0_r = rewardFunc(action_dict["player_0"], observations["player_0"])
-    v, r, c, dist = distanceToClosestApple(observations["player_0"]["RGB"])
-    # dist = "{:.6f}".format(dist)
-    # if dist != -1:
-    #   mapp = observations["player_0"]["RGB"]
-    #   for vv in v:
-    #     mapp[vv[0]][vv[1]][0] += 50
-    #   plt.imshow(mapp)
-    #   plt.savefig(f"./img_out/{self.img_count}_{r}_{c}_{dist}.png")
-    #   self.img_count += 1 
-  
+    p0_r = "{:.6f}".format(p0_r)
+    plt.imshow(observations["player_0"]["RGB"])
+    plt.savefig(f"./img_out/{self.img_count}_{p0_r}.png")
+    self.img_count += 1
     rewards = {
         agent_id: rewardFunc(action_dict[agent_id], observations[agent_id])
         for index, agent_id in enumerate(self._ordered_agent_ids)
