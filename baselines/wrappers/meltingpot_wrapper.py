@@ -75,8 +75,11 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
         8: "FIRE_CLEAN"
     }
 
+    # RGB values for sprites of interest
     DIRTY_WATER = [28, 152, 147]
     APPLE = [171, 153, 69]
+
+    # Bit map representing area of effect for FIRE_CLEAN action
     CLEANING_AREA = (
       (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
       (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
@@ -92,6 +95,9 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
     
     @cache
     def generateCoordsFromBitmap(bitmap):
+      """
+      Memoized function to convert bitmap to a list of coordinates.
+      """
       coords = []
       for row in range(len(bitmap)):
         for col in range(len(bitmap[0])):
@@ -100,6 +106,9 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
       return coords
 
     def isDirtyWaterInRange(rgb):
+      """
+      Check if there exists at least one dirty water cell in the FIRE_CLEAN area of effect.
+      """
       cleaning_coords = generateCoordsFromBitmap(CLEANING_AREA)
       for row, col in cleaning_coords:
         if rgb[row][col].tolist() == DIRTY_WATER:
@@ -107,6 +116,9 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
       return False
 
     def distanceToNearestApple(rgb):
+      """
+      Computes Manhattan distance to the nearest apple cell from the player.
+      """
       directions = ((0, 1), (1, 0), (0, -1), (-1, 0))
       queue = deque()
       queue.append((9, 5))
@@ -141,6 +153,12 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
       return -1
           
     def rewardFunc(action, observation):
+      """
+      Custom reward function.
+      If an apple is in FOV, return 1 / distance_to_apple.
+      If dirty water is in the cleaning area of effect, then reward the agent
+      for doing FIRE_CLEAN, otherwise punish them for doing anything else.
+      """
       rgb = observation["RGB"]
       dist_to_nearest_apple = distanceToNearestApple(rgb)
       should_clean = isDirtyWaterInRange(rgb)
@@ -159,18 +177,19 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
     timestep = self._env.step(actions)
     observations = utils.timestep_to_observations(timestep)
 
+    # DEBUG: Visualize what player_0 is doing
     p0_r = rewardFunc(action_dict["player_0"], observations["player_0"])
     p0_r = "{:.6f}".format(p0_r)
     plt.imshow(observations["player_0"]["RGB"])
     plt.savefig(f"./img_out/{self.img_count}_{p0_r}.png")
     self.img_count += 1
+  
     rewards = {
         agent_id: rewardFunc(action_dict[agent_id], observations[agent_id])
         for index, agent_id in enumerate(self._ordered_agent_ids)
     }
     done = {'__all__': timestep.last()}
     info = {}
-
 
     ###### START DEBUG LOGS ######
     debug_rewards = {
@@ -196,11 +215,12 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
 
   def close(self):
     """See base class."""
-    print("debug length:", len(self.debug_out))
-    if len(self.debug_out) > 0:
-      with open("./my_debug_out.json", "w") as outfile:
-          json_object = json.dumps(self.debug_out, indent=5)
-          outfile.write(json_object)
+    # DEBUG: Log actions and observations at each time step to JSON file
+    # print("debug length:", len(self.debug_out))
+    # if len(self.debug_out) > 0:
+    #   with open("./my_debug_out.json", "w") as outfile:
+    #       json_object = json.dumps(self.debug_out, indent=5)
+    #       outfile.write(json_object)
     self._env.close()
 
   def get_dmlab2d_env(self):
