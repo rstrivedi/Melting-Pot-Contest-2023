@@ -192,23 +192,23 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
     info = {}
 
     ###### START DEBUG LOGS ######
-    debug_rewards = {
-      agent_id: reward
-      for agent_id, reward in rewards.items()
-    }
-    debug_observations = {
-      agent_id: {
-        'COLLECTIVE_REWARD': val['COLLECTIVE_REWARD'],
-        'READY_TO_SHOOT': val['READY_TO_SHOOT'].tolist(),
-      }
-      for agent_id, val in observations.items()
-    }
-    debug = {
-      "actions": list(map(lambda x: action_set[x], actions)),
-      "rewards": debug_rewards,
-      "observations": debug_observations
-    }
-    self.debug_out.append(debug)
+    # debug_rewards = {
+    #   agent_id: reward
+    #   for agent_id, reward in rewards.items()
+    # }
+    # debug_observations = {
+    #   agent_id: {
+    #     'COLLECTIVE_REWARD': val['COLLECTIVE_REWARD'],
+    #     'READY_TO_SHOOT': val['READY_TO_SHOOT'].tolist(),
+    #   }
+    #   for agent_id, val in observations.items()
+    # }
+    # debug = {
+    #   "actions": list(map(lambda x: action_set[x], actions)),
+    #   "rewards": debug_rewards,
+    #   "observations": debug_observations
+    # }
+    # self.debug_out.append(debug)
     ###### END DEBUG LOGS ######
     
     return observations, rewards, done, done, info
