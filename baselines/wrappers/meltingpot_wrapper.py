@@ -177,12 +177,12 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
     timestep = self._env.step(actions)
     observations = utils.timestep_to_observations(timestep)
 
-    # DEBUG: Visualize what player_0 is doing
-    p0_r = rewardFunc(action_dict["player_0"], observations["player_0"])
-    p0_r = "{:.6f}".format(p0_r)
-    plt.imshow(observations["player_0"]["RGB"])
-    plt.savefig(f"./img_out/{self.img_count}_{p0_r}.png")
-    self.img_count += 1
+    # # DEBUG: Visualize what player_0 is doing
+    # p0_r = rewardFunc(action_dict["player_0"], observations["player_0"])
+    # p0_r = "{:.6f}".format(p0_r)
+    # plt.imshow(observations["player_0"]["RGB"])
+    # plt.savefig(f"./img_out/{self.img_count}_{p0_r}.png")
+    # self.img_count += 1
   
     rewards = {
         agent_id: rewardFunc(action_dict[agent_id], observations[agent_id])
