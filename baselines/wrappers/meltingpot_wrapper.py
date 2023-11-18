@@ -48,6 +48,8 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
 
   def step(self, action_dict):
     """See base class."""
+
+    # CONSTANTS
     NOOP = 0
     FORWARD = 1
     BACKWARD = 2
@@ -71,20 +73,21 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
     }
 
     DIRTY_WATER = [28, 152, 147]
-    CLEANING_AREA = [
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-      [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-      [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    APPLE = [171, 153, 69]
+    CLEANING_AREA = (
+      (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      (0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0),
+      (0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0),
+      (0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0),
+      (0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0),
+      (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
     
-    # @cache
+    @cache
     def generateCoordsFromBitmap(bitmap):
       coords = []
       for row in range(len(bitmap)):
@@ -118,6 +121,9 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
     p0_r = rewardFunc(action_dict["player_0"], observations["player_0"])
     plt.imshow(observations["player_0"]["RGB"])
     plt.savefig(f"./img_out/{self.img_count}_{p0_r}.png")
+    with open(f"./img_out/{self.img_count}_{p0_r}.json", "w") as outfile:
+        json_object = json.dumps(observations["player_0"]["RGB"].tolist(), indent=5)
+        outfile.write(json_object)
     self.img_count += 1 
   
     rewards = {
@@ -127,6 +133,8 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
     done = {'__all__': timestep.last()}
     info = {}
 
+
+    ###### START DEBUG LOGS ######
     debug_rewards = {
       agent_id: reward
       for agent_id, reward in rewards.items()
@@ -144,6 +152,7 @@ class MeltingPotEnv(multi_agent_env.MultiAgentEnv):
       "observations": debug_observations
     }
     self.debug_out.append(debug)
+    ###### END DEBUG LOGS ######
     
     return observations, rewards, done, done, info
 
